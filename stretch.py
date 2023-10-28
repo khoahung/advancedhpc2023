@@ -49,7 +49,7 @@ for block_size in block_size_list:
     dtime_list = []
     for i in range(11):
         # Load and ignore alpha channel
-        img = skio.imread('gura.png')[:, :, :3]
+        img = skio.imread('tiger.jpg')[:, :, :3]
         img = np.ascontiguousarray(img)
         h, w, _ = img.shape
         out = np.ones((h, w), dtype=img.dtype)
