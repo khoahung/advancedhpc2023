@@ -1,0 +1,29 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n+nd}{@cuda}\PYG{o}{.}\PYG{n}{jit}
+\PYG{k}{def} \PYG{n+nf}{rgb\PYGZus{}to\PYGZus{}hsv}\PYG{p}{(}\PYG{n}{src}\PYG{p}{,} \PYG{n}{dst}\PYG{p}{):}
+    \PYG{n}{i} \PYG{o}{=} \PYG{n}{cuda}\PYG{o}{.}\PYG{n}{threadIdx}\PYG{o}{.}\PYG{n}{x} \PYG{o}{+} \PYG{n}{cuda}\PYG{o}{.}\PYG{n}{blockIdx}\PYG{o}{.}\PYG{n}{x} \PYG{o}{*} \PYG{n}{cuda}\PYG{o}{.}\PYG{n}{blockDim}\PYG{o}{.}\PYG{n}{x}
+    \PYG{n}{j} \PYG{o}{=} \PYG{n}{cuda}\PYG{o}{.}\PYG{n}{threadIdx}\PYG{o}{.}\PYG{n}{y} \PYG{o}{+} \PYG{n}{cuda}\PYG{o}{.}\PYG{n}{blockIdx}\PYG{o}{.}\PYG{n}{y} \PYG{o}{*} \PYG{n}{cuda}\PYG{o}{.}\PYG{n}{blockDim}\PYG{o}{.}\PYG{n}{y}
+    \PYG{n}{r}\PYG{p}{,} \PYG{n}{g}\PYG{p}{,} \PYG{n}{b} \PYG{o}{=} \PYG{n}{src}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{],} \PYG{n}{src}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{],} \PYG{n}{src}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{]}
+    \PYG{n}{max\PYGZus{}c} \PYG{o}{=} \PYG{n+nb}{max}\PYG{p}{(}\PYG{n}{r}\PYG{p}{,} \PYG{n}{g}\PYG{p}{,} \PYG{n}{b}\PYG{p}{)}
+    \PYG{n}{min\PYGZus{}c} \PYG{o}{=} \PYG{n+nb}{min}\PYG{p}{(}\PYG{n}{r}\PYG{p}{,} \PYG{n}{g}\PYG{p}{,} \PYG{n}{b}\PYG{p}{)}
+    \PYG{n}{d} \PYG{o}{=} \PYG{n}{max\PYGZus{}c} \PYG{o}{\PYGZhy{}} \PYG{n}{min\PYGZus{}c}
+
+    \PYG{c+c1}{\PYGZsh{} h}
+    \PYG{k}{if} \PYG{n}{d} \PYG{o}{==} \PYG{n}{np}\PYG{o}{.}\PYG{n}{float64}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{):}
+        \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{float64}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}
+    \PYG{k}{if} \PYG{n}{max\PYGZus{}c} \PYG{o}{==} \PYG{n}{r}\PYG{p}{:}
+        \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{60} \PYG{o}{*} \PYG{p}{((}\PYG{n}{g} \PYG{o}{\PYGZhy{}} \PYG{n}{b}\PYG{p}{)}\PYG{o}{/}\PYG{n}{d} \PYG{o}{\PYGZpc{}} \PYG{l+m+mi}{6}\PYG{p}{)}
+    \PYG{k}{if} \PYG{n}{max\PYGZus{}c} \PYG{o}{==} \PYG{n}{g}\PYG{p}{:}
+        \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{60} \PYG{o}{*} \PYG{p}{((}\PYG{n}{b} \PYG{o}{\PYGZhy{}} \PYG{n}{r}\PYG{p}{)}\PYG{o}{/}\PYG{n}{d} \PYG{o}{+} \PYG{l+m+mi}{2}\PYG{p}{)}
+    \PYG{k}{if} \PYG{n}{max\PYGZus{}c} \PYG{o}{==} \PYG{n}{b}\PYG{p}{:}
+        \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{l+m+mi}{60} \PYG{o}{*} \PYG{p}{((}\PYG{n}{r} \PYG{o}{\PYGZhy{}} \PYG{n}{g}\PYG{p}{)}\PYG{o}{/}\PYG{n}{d} \PYG{o}{+} \PYG{l+m+mi}{4}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} s}
+    \PYG{k}{if} \PYG{n}{max\PYGZus{}c} \PYG{o}{==} \PYG{n}{np}\PYG{o}{.}\PYG{n}{float64}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{):}
+        \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{float64}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{)}
+    \PYG{k}{if} \PYG{n}{max\PYGZus{}c} \PYG{o}{!=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{float64}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{):}
+        \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{=} \PYG{n}{d}\PYG{o}{/}\PYG{n}{max\PYGZus{}c}
+
+    \PYG{c+c1}{\PYGZsh{} v}
+    \PYG{n}{dst}\PYG{p}{[}\PYG{n}{i}\PYG{p}{,} \PYG{n}{j}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{]} \PYG{o}{=} \PYG{n}{max\PYGZus{}c}
+\end{Verbatim}

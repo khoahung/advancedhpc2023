@@ -1,0 +1,27 @@
+@cuda.jit
+def rgb_to_hsv(src, dst):
+    i = cuda.threadIdx.x + cuda.blockIdx.x * cuda.blockDim.x
+    j = cuda.threadIdx.y + cuda.blockIdx.y * cuda.blockDim.y
+    r, g, b = src[i, j, 0], src[i, j, 1], src[i, j, 2]
+    max_c = max(r, g, b)
+    min_c = min(r, g, b)
+    d = max_c - min_c
+
+    # h
+    if d == np.float64(0):
+        dst[i, j, 0] = np.float64(0)
+    if max_c == r:
+        dst[i, j, 0] = 60 * ((g - b)/d % 6)
+    if max_c == g:
+        dst[i, j, 0] = 60 * ((b - r)/d + 2)
+    if max_c == b:
+        dst[i, j, 0] = 60 * ((r - g)/d + 4)
+
+    # s
+    if max_c == np.float64(0):
+        dst[i, j, 1] = np.float64(0)
+    if max_c != np.float64(0):
+        dst[i, j, 1] = d/max_c
+
+    # v
+    dst[i, j, 2] = max_c
