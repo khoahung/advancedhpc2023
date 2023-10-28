@@ -1,7 +1,7 @@
 import numpy as np
 import timeit
+import numba as nb
 import skimage.io as skio
-from numba import cuda
 import math
 
 def dual_tuple_division(x, y):
@@ -10,31 +10,31 @@ def dual_tuple_division(x, y):
         return_tuple.append(math.ceil(ii/i))
     return tuple(return_tuple)
 
-@cuda.jit
+@nb.jit
 def convert(src, dst):
-    i = cuda.threadIdx.x + cuda.blockIdx.x * cuda.blockDim.x
-    j = cuda.threadIdx.y + cuda.blockIdx.y * cuda.blockDim.y
+    i = nb.threadIdx.x + nb.blockIdx.x * nb.blockDim.x
+    j = nb.threadIdx.y + nb.blockIdx.y * nb.blockDim.y
     g = np.uint8((src[i, j, 0] + src[i, j, 1] + src[i, j, 2]) / 3)
     dst[i, j] = g
     
-@cuda.reduce
+@nb.reduce
 def find_max(a, b):
     if a > b:
         return a
     else:
         return b
 
-@cuda.reduce
+@nb.reduce
 def find_min(a, b):
     if a < b:
         return a
     else:
         return b
 
-@cuda.jit
+@nb.jit
 def stretch(src, dst, min_g, max_g):
-    i = cuda.threadIdx.x + cuda.blockIdx.x * cuda.blockDim.x
-    j = cuda.threadIdx.y + cuda.blockIdx.y * cuda.blockDim.y
+    i = nb.threadIdx.x + nb.blockIdx.x * nb.blockDim.x
+    j = nb.threadIdx.y + nb.blockIdx.y * nb.blockDim.y
     dst[i, j] = np.uint8((src[i, j] - min_g) / (max_g - min_g) * 255)
         
 
@@ -60,8 +60,8 @@ for block_size in block_size_list:
         # Measure time 
         stime = timeit.default_timer()
         # Map
-        A = cuda.to_device(img)
-        B = cuda.to_device(out)
+        A = nb.to_device(img)
+        B = nb.to_device(out)
         convert[grid_size, block_size](A, B)
         # Reduce
         TEMP = B.copy_to_host().flatten()
@@ -69,8 +69,8 @@ for block_size in block_size_list:
         max_g = find_max(TEMP)
         # Map
         TEMP = TEMP.reshape((h, w))
-        A = cuda.to_device(TEMP)
-        B = cuda.to_device(np.array(TEMP, copy=True))
+        A = nb.to_device(TEMP)
+        B = nb.to_device(np.array(TEMP, copy=True))
         stretch[grid_size, block_size](A, B, min_g, max_g)
         # Measure time
         dtime = timeit.default_timer() - stime
