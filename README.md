@@ -12,5 +12,7 @@ Students are expected to:
 Student Info
 =======================
 
-* Name: MyName
+* Name: Nguyễn Tất Hùng
+* ID : M20.ICT.003
+* 
 
